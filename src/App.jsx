@@ -1,6 +1,10 @@
+import Canvas from "./components/Canvas"
+
 const App = () => {
   return (
-    <div className="h-screen w-full bg-black text-white">App</div>
+    <div>
+      <Canvas />
+    </div>
   )
 }
 
