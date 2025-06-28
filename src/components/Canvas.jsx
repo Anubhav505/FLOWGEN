@@ -1,38 +1,69 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
+import {
+  ReactFlow,
+  Background,
+  applyEdgeChanges,
+  addEdge,
+  applyNodeChanges,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import TextUpdaterNode from "./TextUpdaterNode";
 
-const Canvas = () => {
-  const canvasRef = useRef();
-  const [zoom, setZoom] = useState(1);
+const initialNodes = [
+  {
+    id: "1",
+    type: "textUpdater",
+    position: { x: 0, y: 0 },
+    data: { label: "Node 1" },
+  },
+];
+const initialEdges = [];
 
-  useEffect(() => {
-    const handleWheel = (event) => {
-      event.preventDefault();
-      if (event.deltaY < 0) {
-        setZoom((prevZoom) => Math.min(prevZoom + 0.1, 5));
-      } else {
-        setZoom((prevZoom) => Math.max(prevZoom - 0.1, 0.2));
-      }
-    };
+const nodeTypes = {
+  textUpdater: TextUpdaterNode,
+};
 
-    const canvas = canvasRef.current;
-    canvas.addEventListener("wheel", handleWheel, { passive: false });
+const Canvas = ({ activeTool }) => {
+  const [nodes, setNodes] = useState(initialNodes);
+  const [edges, setEdges] = useState(initialEdges);
 
-    return () => {
-      canvas.removeEventListener("wheel", handleWheel);
-    };
+  const onNodesChange = useCallback(
+    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    []
+  );
+  const onEdgesChange = useCallback(
+    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
+    []
+  );
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    []
+  );
+
+  const handlePaneClick = useCallback((e) => {
+    console.log('pane clicked at', {
+      x: e.clientX,
+      y: e.clientY,
+    }
+    )
   }, []);
 
   return (
-    <div
-      ref={canvasRef}
-      className="w-full h-screen bg-gray-100 flex items-center justify-center overflow-hidden"
-    >
-      <div
-        className="w-64 h-64 bg-white shadow-lg flex items-center justify-center text-xl font-bold transition-transform duration-200"
-        style={{ transform: `scale(${zoom})` }}
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        fitView
+        colorMode="light"
+        panOnDrag={activeTool === "hand"}
+        onPaneClick={handlePaneClick}
       >
-        Zoom Me
-      </div>
+        <Background color="#1f1f1f" variant="dots" />
+      </ReactFlow>
     </div>
   );
 };
